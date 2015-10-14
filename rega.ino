@@ -30,12 +30,20 @@
 
 // Struct
 struct irrigation {
+  irrigation (int hStart, int mStart, int hEnd, int mEnd, const char* frequency, int pinNr) :
+    HHstart(hStart), MMstart(mStart), HHend(hEnd), MMend(mEnd), _dayOfWeek(frequency), _pinNr(pinNr) 
+  {}
+
   int HHstart;
   int MMstart;
   int HHend;
   int MMend;
-  char _*dayOfWeek[7]; //dias da semana em que rega a bomba
-  int pinNr;
+  char *_dayOfWeek[7]; //dias da semana em que rega a bomba
+  int _pinNr;
+
+private:
+  irrigation(const irrigation&);
+  irrigation& operator=(const irrigation & other);
 };
 
 // Variables
@@ -61,10 +69,10 @@ int _minute;
 int _second;
 
 // uma pumpN pode ser um array com n horarios
-irrigation pump1 = {21,0,22,0,pump1Pin,{"1","0","1","0","1","0","1"}};
-irrigation pump2 = {21,0,22,0,pump2Pin,{"1","0","1","0","1","0","1"}};
-irrigation pump3 = {21,0,22,0,pump3Pin,{"1","0","1","0","1","0","1"}};
-irrigation pump4 = {21,0,22,0,pump4Pin,{"1","0","1","0","1","0","1"}};
+irrigation pump1(21,0,22,0,pump1Pin{"1","0","1","0","1","0","1"});
+irrigation pump2(21,0,22,0,pump2Pin,{"1","0","1","0","1","0","1"});
+irrigation pump3(21,0,22,0,pump3Pin,{"1","0","1","0","1","0","1"});
+irrigation pump4(21,0,22,0,pump4Pin,{"1","0","1","0","1","0","1"});
 irrigation pumps[]={pump1,pump2,pump3,pump4};
 int buttonState = 0;         // variable for reading the pushbutton status
 int totalPumps = 4;
