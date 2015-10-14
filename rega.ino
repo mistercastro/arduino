@@ -54,12 +54,12 @@ const int pump3Pin = 3;// the number of the reley 3
 const int pump4Pin = 3;// the number of the reley 4
 const int buttonPin = 8;     // the number of the pushbutton pin
 const char *daysOfWeekStrings[7] = {"Dom, ",
-				   "Seg, ",
-				   "Ter, ",
-				   "Qua, ",
-				   "Qui, ",
-				   "Sex, ",
-				   "Sab, "};
+                                    "Seg, ",
+                                    "Ter, ",
+                                    "Qua, ",
+                                    "Qui, ",
+                                    "Sex, ",
+                                    "Sab, "};
 int _day;
 int _month;
 int _year;
@@ -236,3 +236,7 @@ void pumpOnOff ()
     }
   }
 }
+
+/* Local Variables: */
+/* mode: c++ */
+/* End: */
