@@ -29,22 +29,27 @@
 
 
 // Struct
-struct irrigation {
-  irrigation (int hStart, int mStart, int hEnd, int mEnd, const char* frequency, int pinNr) :
-    HHstart(hStart), MMstart(mStart), HHend(hEnd), MMend(mEnd), _dayOfWeek(frequency), _pinNr(pinNr) 
-  {}
+struct Irrigation {
+    int ontime,
+    int offtime,
+    int pinNr,
+    //const char* frequency
+    int frequency}
+//  irrigation (int hStart, int mStart, int hEnd, int mEnd, const char* frequency, int pinNr) :
+//    HHstart(hStart), MMstart(mStart), HHend(hEnd), MMend(mEnd), _dayOfWeek(frequency), _pinNr(pinNr) 
+//  {}
 
-  int HHstart;
-  int MMstart;
-  int HHend;
-  int MMend;
-  char *_dayOfWeek[7]; //dias da semana em que rega a bomba
-  int _pinNr;
+//  int HHstart;
+//  int MMstart;
+//  int HHend;
+//  int MMend;
+//  char *_dayOfWeek[7]; //dias da semana em que rega a bomba
+//  int _pinNr;
 
-private:
-  irrigation(const irrigation&);
-  irrigation& operator=(const irrigation & other);
-};
+//private:
+//  irrigation(const irrigation&);
+//  irrigation& operator=(const irrigation & other);
+//};
 
 // Variables
 // pins
@@ -67,12 +72,13 @@ int _dayOfWeek;
 int _hour;
 int _minute;
 int _second;
+int _time;
 
 // uma pumpN pode ser um array com n horarios
-irrigation pump1(21,0,22,0,pump1Pin{"1","0","1","0","1","0","1"});
-irrigation pump2(21,0,22,0,pump2Pin,{"1","0","1","0","1","0","1"});
-irrigation pump3(21,0,22,0,pump3Pin,{"1","0","1","0","1","0","1"});
-irrigation pump4(21,0,22,0,pump4Pin,{"1","0","1","0","1","0","1"});
+Irrigation pump1 {21,0,22,0,pump1Pin,B0101010}; // sab;sex;qui:qua;ter;seg;dom
+//irrigation pump2 {21,0,22,0,pump2Pin,{"1","0","1","0","1","0","1"}};
+//irrigation pump3 {21,0,22,0,pump3Pin,{"1","0","1","0","1","0","1"}};
+//irrigation pump4 {21,0,22,0,pump4Pin,{"1","0","1","0","1","0","1"}};
 irrigation pumps[]={pump1,pump2,pump3,pump4};
 int buttonState = 0;         // variable for reading the pushbutton status
 int totalPumps = 4;
@@ -179,6 +185,7 @@ void ActualizeDateTime()
   _hour = Now.hour();
   _minute = Now.minute();
   _second = Now.second();
+  _time.now = _hour*100+_minute;
 }
 
 void WriteHour()
@@ -222,13 +229,15 @@ void pumpOnOff ()
 {
   for (int thisPump = 0; thisPump < totalPumps; thisPump++) {
     irrigation pump = pumps[thisPump];
-
-    if ((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.HHstart == _hour) && (pump.MMstart == _minute) && (_second >= 0) && (_second <= 2)) {      
+    //((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.HHstart == _hour) && (pump.MMstart == _minute) && (_second >= 0) && (_second <= 2))
+    // if ((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.ontime == _time.now)) {
+    if ((pow(2, _dayOfWeek) & pump.frequency) && (pump.ontime == _time.now)) {
       if (digitalRead(pump.pinNr) == LOW) {
 	digitalWrite(pump.pinNr,HIGH);   
       }
     }else{
-      if ((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.HHend == _hour) && (pump.MMend == _minute)) {
+      // if ((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.off == _time.now)) {
+      if ((pow(2, _dayOfWeek) & pump.frequency) && (pump.off == _time.now)) {
 	if (digitalRead(pump.pinNr) == HIGH) {
 	  digitalWrite(pump.pinNr,LOW);
 	}
