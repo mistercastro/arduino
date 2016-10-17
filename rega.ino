@@ -30,33 +30,14 @@
 
 // Struct
 struct Irrigation {
-    int ontime,
-    int offtime,
-    int pinNr,
-    //const char* frequency
-    int frequency}
-//  irrigation (int hStart, int mStart, int hEnd, int mEnd, const char* frequency, int pinNr) :
-//    HHstart(hStart), MMstart(mStart), HHend(hEnd), MMend(mEnd), _dayOfWeek(frequency), _pinNr(pinNr) 
-//  {}
-
-//  int HHstart;
-//  int MMstart;
-//  int HHend;
-//  int MMend;
-//  char *_dayOfWeek[7]; //dias da semana em que rega a bomba
-//  int _pinNr;
-
-//private:
-//  irrigation(const irrigation&);
-//  irrigation& operator=(const irrigation & other);
-//};
+    int ontime;
+    int offtime;
+    int pinNr;
+    int frequency;
+  };
 
 // Variables
 // pins
-const int pump1Pin = 7; // the number of the reley 1
-const int pump2Pin = 3;// the number of the reley 2
-const int pump3Pin = 3;// the number of the reley 3
-const int pump4Pin = 3;// the number of the reley 4
 const int buttonPin = 8;     // the number of the pushbutton pin
 const char *daysOfWeekStrings[7] = {"Dom, ",
                                     "Seg, ",
@@ -72,17 +53,16 @@ int _dayOfWeek;
 int _hour;
 int _minute;
 int _second;
-int _time;
+int _timeNow; // 10:00 => 1000
 
 // uma pumpN pode ser um array com n horarios
-Irrigation pump1 {21,0,22,0,pump1Pin,B0101010}; // sab;sex;qui:qua;ter;seg;dom
-//irrigation pump2 {21,0,22,0,pump2Pin,{"1","0","1","0","1","0","1"}};
-//irrigation pump3 {21,0,22,0,pump3Pin,{"1","0","1","0","1","0","1"}};
-//irrigation pump4 {21,0,22,0,pump4Pin,{"1","0","1","0","1","0","1"}};
-irrigation pumps[]={pump1,pump2,pump3,pump4};
+Irrigation pump1 = {2100,2200,7,B0101010}; // sab;sex;qui:qua;ter;seg;dom
+Irrigation pump2 = {2100,2200,3,B0101010};
+Irrigation pump3 = {2100,2200,3,B0101010};
+Irrigation pump4 = {2100,2200,3,B0101010};
+Irrigation pumps[]={pump1,pump2,pump3,pump4};
 int buttonState = 0;         // variable for reading the pushbutton status
-int totalPumps = 4;
-
+int totalPumps = 4; // para remover e usar o sizeof 
 // system messages
 const char *string_table[] =
 {   
@@ -120,10 +100,11 @@ void setup(){
   }
   
   // Arduino pins initalization
-  pinMode(pump1Pin,OUTPUT);
-  pinMode(pump2Pin,OUTPUT);
-  pinMode(pump3Pin,OUTPUT);
-  pinMode(pump4Pin,OUTPUT);
+  Serial.println("size =" +  sizeof(pumps));
+  for (int i = 0; i < sizeof(pumps); i++){
+    pinMode(pumps[i].pinNr,OUTPUT);    
+  }
+  
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
   
@@ -148,10 +129,10 @@ void loop(){
   // check if the pushbutton is pressed.
   // if it is, the buttonState is HIGH:
   if (buttonState == HIGH) {  
-    if (digitalRead(pump1Pin) == HIGH) {
-      digitalWrite(pump1Pin,LOW);   
+    if (digitalRead(pump1.pinNr) == HIGH) {
+      digitalWrite(pump1.pinNr,LOW);   
     }else{
-      digitalWrite(pump1Pin,HIGH);
+      digitalWrite(pump1.pinNr,HIGH);
     }
   }
   pumpOnOff();
@@ -160,17 +141,16 @@ void loop(){
 void WritePumpState()
 {
 //  String result1 = " P1|P2|P3|P4 ";
-  String result2 = "";
-  int valPump1 = digitalRead(pump1Pin);
-//  int valPump2 = digitalRead(pump2Pin);
-  if(valPump1 == HIGH)
-  {
-    result2 += "ON ";
-  }else{
-    result2 += "OFF";  
+  String result = "";
+  for (int i = 0; i < sizeof(pumps); i++){
+    if (digitalRead(pumps[i].pinNr) == HIGH){
+      result += i+1 + "-1;";
+    }else{
+      result += i+1 + "-0";  
+    }
   }
   lcd.setCursor(12, 1);
-  lcd.print(result2);
+  lcd.print(result);
 }
 
 // Real Time Clock Function
@@ -185,7 +165,7 @@ void ActualizeDateTime()
   _hour = Now.hour();
   _minute = Now.minute();
   _second = Now.second();
-  _time.now = _hour*100+_minute;
+  _timeNow = _hour*100+_minute;
 }
 
 void WriteHour()
@@ -228,16 +208,16 @@ String fixZero(int i)
 void pumpOnOff ()
 {
   for (int thisPump = 0; thisPump < totalPumps; thisPump++) {
-    irrigation pump = pumps[thisPump];
+    Irrigation pump = pumps[thisPump];
     //((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.HHstart == _hour) && (pump.MMstart == _minute) && (_second >= 0) && (_second <= 2))
     // if ((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.ontime == _time.now)) {
-    if ((pow(2, _dayOfWeek) & pump.frequency) && (pump.ontime == _time.now)) {
+    if (((int) pow(2, _dayOfWeek) & pump.frequency) && (pump.ontime == _timeNow)) {
       if (digitalRead(pump.pinNr) == LOW) {
 	digitalWrite(pump.pinNr,HIGH);   
       }
     }else{
       // if ((pump.dayOfWeek[_dayOfWeek] == "1") && (pump.off == _time.now)) {
-      if ((pow(2, _dayOfWeek) & pump.frequency) && (pump.off == _time.now)) {
+      if (((int) pow(2, _dayOfWeek) & pump.frequency) && (pump.offtime == _timeNow)) {
 	if (digitalRead(pump.pinNr) == HIGH) {
 	  digitalWrite(pump.pinNr,LOW);
 	}
